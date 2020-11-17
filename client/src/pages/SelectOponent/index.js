@@ -28,13 +28,22 @@ function SelectOponent({socket}) {
       socket.on('newOpponentAdded',(response)=>{
         setOpponents([...oponents,response])
       })
+
+      socket.on('excludePlayers',(response)=>{
+        setOpponents(response)
+      })
+
+      socket.on('gameStarted',(response)=>{
+        history.push('/game',response)
+      })
+
     }
 
-  },[socket,setOpponents,oponents])
+  },[socket,setOpponents,oponents,history])
 
   const handleSelectOponent = useCallback((oponent)=>{
-    history.push('/game',{player,oponent})
-  },[history,player])
+    socket.emit('selectOpponent',oponent)
+  },[socket])
 
   return (
     <Container fluid>

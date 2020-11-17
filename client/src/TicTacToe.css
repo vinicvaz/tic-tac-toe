@@ -41,14 +41,22 @@ body{
   text-align: center;
   font-size: 3rem;
   color: #555;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
+}
+
+.turn {
+  text-align: center;
+  font-size: 2rem;
+  color: #555;
 }
 
 .cell.O {
   background-color : var(--O-color);
+  cursor: not-allowed;
 }
 .cell.X{
   background: var(--X-color);
+  cursor: not-allowed;
 }
 
 .cell.O, .cell.X {

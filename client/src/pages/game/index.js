@@ -1,81 +1,99 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Row, Col} from 'react-bootstrap';
 import {useHistory, useLocation} from 'react-router-dom'
 import "../../TicTacToe.css"
 
 function Game({socket}) {
   const history = useHistory()
-  const {state: locationState} = useLocation()
-
+  const {state: game} = useLocation()
 
   const playboardDefaultArray = [
     ['', '', ''],
     ['', '', ''],
     ['', '', '']
   ]
-  const [board, setBoard] = useState(playboardDefaultArray);
-  const [game, setGame] = useState({});
+  const [playboard, setPlayboard] = useState(playboardDefaultArray);
+  const [whoseTurn, setWhoseTurn] = useState('');
+  const [gameId, setGameId] = useState('');
+  const [player,setPlayer] = useState({});
+  const [gameStatus, setGameStatus] = useState('')
 
   useEffect(()=>{
-    if(locationState && !locationState.oponent && locationState.player) {
-      history.push('/select')
-    }
-
-    if(!locationState) {
+    if(!game) {
       history.push('/')
+      return
     }
+    console.dir(game)
 
-    if(socket && locationState?.oponent && locationState?.player) {
-      socket.emit('selectOpponent',locationState.oponent)
+    const tempPlayer = 
+      game.gameData.player1.id === socket.id ? 
+        game.gameData.player1 : 
+        game.gameData.player2 
+    setPlayer(tempPlayer)
+    setPlayboard(game.gameData.playboard)
+    setWhoseTurn(game.gameData.whoseTurn)
+    setGameId(game.gameId)
+    setGameStatus(game.gameStatus)
+
+  },[socket,game,history])
+
+  const myTurn = useMemo(()=>{
+    if(whoseTurn === socket?.id) {
+      return true
     }
-  },[socket,locationState,history])
+    return false
+  },[whoseTurn, socket])
+
+  const handleCellClick = useCallback((indexTuple) => {
+    // Adicionar verificação pra nao clicar em campo que ja esta preenchido
+    const i = indexTuple[0];
+    const j = indexTuple[1];
+  
+    if (playboard[i][j]==='X' || playboard[i][j]==='O'){
+      return
+    }
+  
+    if(!myTurn) {
+      return
+    }
+    socket.emit('selectCell', {
+      gameId,
+      i,
+      j,
+      player,
+    })
+
+  },[myTurn,socket,gameId,player]) 
 
   useEffect(()=>{
-    if(socket) {
-      socket.on('gameStarted', game => {
-        console.log(game)
-        setGame(game)
+    if(socket){
+      socket.on('selectCellResponse',gameData=>{
+        setPlayboard(gameData.playboard)
+        setWhoseTurn(gameData.whoseTurn)
+        setGameStatus(gameData.gameStatus)
       })
     }
   },[socket])
 
-  const handleCellClick = (indexTuple) => {
-    // Here we have to send over socket the data to server
-    /* 
-      {
-        gameId: game string id,
-        i: indexTuple[0],
-        j: indexTuple[1],
-        player: { player object that realized the move }
-      }
-
-      this will return some event over socket with 
-      a new playboard to udpate and more info probably
-    */
-   const newPlayboard = [
-    ['', 'X', ''],
-    ['', '', ''],
-    ['', '', '']
-  ]
-  setBoard(newPlayboard);
-
-  }
-
   return (
     <main>
       <h1 className='title' >Jogo da Velha</h1>
-      <div className='board'>
-        {board.map((subArray, rowIndex) => (
-          subArray.map((item, index) => (
-            <div 
-            className={`cell ${item}`}
-            key={[rowIndex, index]}
-            onClick={() => handleCellClick([rowIndex, index])}
-            >
-              {item}
-            </div>
-          ))
-        ))}
-      </div>
+      <h3 className='turn'>{myTurn ? 'Sua vez': 'Aguardando outro jogador'}</h3>
+      <h2 className='title'>{gameStatus === 'draw' ? 'Empatou' : ''}</h2>
+        <div className='board'>
+          {playboard.map((subArray, rowIndex) => (
+            subArray.map((item, index) => (
+              <div 
+              className={`cell ${item}`}
+              key={[rowIndex, index]}
+              style={{cursor:`${myTurn ? 'pointer' : 'not-allowed'}`}}
+              onClick={() => handleCellClick([rowIndex, index])}
+              >
+                {item}
+              </div>
+            ))
+          ))}
+        </div>
     </main>
   );
 }
