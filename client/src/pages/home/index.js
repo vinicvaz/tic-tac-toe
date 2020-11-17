@@ -1,18 +1,23 @@
-import React, {useState} from 'react';
+import React, {useState,useEffect, useCallback} from 'react';
 import {Container, Row, Col, Card, Form, Button} from 'react-bootstrap'
+import { useHistory } from 'react-router-dom'
 
-
-function Home() {
-
+function Home({socket}) {
+    const history = useHistory()
     const [name, setName] = useState('');
     
-    const handleSubmit = (e) =>{
-        // Find player and start game
-        e.preventDefault();
-        // script //
-        console.log(name)
+    const handleSubmit = useCallback((e)=>{
+        e.preventDefault()
+        socket.emit('checkUserDetail', {name} )
+    },[socket,name])
 
-    }
+    useEffect(()=>{
+        if (socket){
+            socket.on('checkUserDetailResponse',(data)=>{
+                history.push('/select',data)
+            })
+        }
+    },[socket,history])
 
     return (
         <Container fluid>
