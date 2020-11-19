@@ -36,7 +36,7 @@ export function gameRules(data, players, games) {
       game.playboard[winCombinations[i][2][0]][winCombinations[i][2][1]]
 
     if (tempComb === 'XXX' || tempComb === 'OOO') {
-      game.game_winner = game.whoseTurn
+      game.gameWinner = game.whoseTurn
       game.gameStatus = 'won'
       game.winning_combination = [
         [winCombinations[i][0][0], winCombinations[i][0][1]],

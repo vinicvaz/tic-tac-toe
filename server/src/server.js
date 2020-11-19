@@ -239,13 +239,11 @@ io.on('connection', client => {
             game_id: gameId,
             game_data: games[gameId],
           })
-
-          io.sockets.connected[game.player1].leave(data.gameId)
-          io.sockets.connected[game.player2].leave(data.gameId)
+          io.sockets.sockets.get(game.player1.id).leave(data.gameId)
+          io.sockets.sockets.get(game.player2.id).leave(data.gameId)
           // delete game
         }
       }, 1000)
-      
     }
   })
 
