@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Card,Button} from 'react-bootstrap';
-import {useHistory, useLocation} from 'react-router-dom'
+import {Row, Col, Button} from 'react-bootstrap';
+import {Redirect, useHistory, useLocation} from 'react-router-dom'
 import "../../TicTacToe.css"
 
 function Game({socket}) {
@@ -15,8 +15,8 @@ function Game({socket}) {
   const [playboard, setPlayboard] = useState(playboardDefaultArray);
   const [whoseTurn, setWhoseTurn] = useState('');
   const [gameId, setGameId] = useState('');
-  const [player,setPlayer] = useState({});
-  const [winner,setWinner] = useState({});
+  const [player, setPlayer] = useState({});
+  const [winner, setWinner] = useState({});
   const [gameStatus, setGameStatus] = useState('')
 
   const endGame = useMemo(()=>{
@@ -39,7 +39,6 @@ function Game({socket}) {
       history.push('/')
       return
     }
-    console.dir(game)
 
     const tempPlayer = 
       game.gameData.player1.id === socket.id ? 
@@ -87,7 +86,6 @@ function Game({socket}) {
   useEffect(()=>{
     if(socket){
       socket.on('selectCellResponse',gameData=>{
-        console.log(gameData)
         setPlayboard(gameData.playboard)
         setWhoseTurn(gameData.whoseTurn)
         setGameStatus(gameData.gameStatus)
@@ -98,8 +96,9 @@ function Game({socket}) {
   },[socket])
 
   const handlePlayingAgain = useCallback(()=>{
-    socket.emit('disconnect')
+    socket.emit('forceDisconnect')
     history.push('/')
+
 
   },[socket,history])
 
@@ -107,14 +106,13 @@ function Game({socket}) {
     <main>
       <h1 className='title' >Jogo da Velha</h1>
       <h3 className='turn'>{myTurn ? 'Sua vez': 'Aguardando outro jogador'}</h3>
-      <h2 className='title'>{endGame}</h2>
       {endGame && 
-            <Card>
-            <Card.Body>
-              <h2 className='title'>{endGame}</h2>
-            <Button variant='secondary' onClick={handlePlayingAgain}> Jogar Novamente</Button>
-            </Card.Body>
-          </Card>
+      <Row>
+        <Col className='col_end'>
+          <h2 className='title'>{endGame}</h2>
+          <Button variant='secondary' onClick={handlePlayingAgain}> Jogar Novamente</Button>
+        </Col>
+      </Row>
       }
         <div className='board'>
           {playboard.map((subArray, rowIndex) => (

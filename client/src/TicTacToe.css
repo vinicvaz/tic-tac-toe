@@ -72,3 +72,8 @@ body{
   min-width: 720px;
   
 }
+
+.col_end{
+  justify-content: center;
+  text-align: center;
+}

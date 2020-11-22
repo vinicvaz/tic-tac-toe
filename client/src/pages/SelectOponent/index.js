@@ -30,7 +30,12 @@ function SelectOponent({socket}) {
       })
 
       socket.on('excludePlayers',(response)=>{
-        setOpponents(response)
+        const oponent = oponents.find(({id}) => id ===response.id)
+        const oponentIndex = oponents.indexOf(oponent)
+
+        const aux = oponents;
+        aux.splice(oponentIndex, 1)
+        setOpponents(aux)
       })
 
       socket.on('gameStarted',(response)=>{
@@ -39,7 +44,7 @@ function SelectOponent({socket}) {
 
     }
 
-  },[socket,setOpponents,oponents,history])
+  },[socket, setOpponents, oponents, history])
 
   const handleSelectOponent = useCallback((oponent)=>{
     socket.emit('selectOpponent',oponent)
@@ -49,7 +54,7 @@ function SelectOponent({socket}) {
     <Container fluid>
         <Row>
           <Col md={12}>
-            <Table striped bordered hover variant="dark">
+            <Table striped bordered hover variant="light" style={{"min-width": '80vw'}}>
               <thead>
                 <tr>
                   <th>#</th>
