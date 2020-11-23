@@ -105,10 +105,13 @@ io.on('connection', client => {
     if (player2Socket) {
       const player1Socket = sockets.find(({ id }) => client.id === id)
 
+      const player1Index = sockets.indexOf(player1Socket)
+      const player2Index = sockets.indexOf(player2Socket)
+
       const gameId = uuid()
 
-      player1Socket.is_playing = true
-      player2Socket.is_playing = true
+      sockets[player1Index].isPlaying = true
+      sockets[player2Index].isPlaying = true
 
       player1Socket.gameId = gameId
       player2Socket.gameId = gameId
@@ -140,23 +143,12 @@ io.on('connection', client => {
       io.sockets.sockets.get(player1Socket.id).join(gameId)
       io.sockets.sockets.get(player2Socket.id).join(gameId)
 
-      const response = []
+      client.broadcast.emit('excludePlayers', {
+        id: player1Socket.id
+      })
 
-      sockets.forEach(socket => {
-        if (
-          socket.id !== player1Socket.id &&
-          socket.id !== player2Socket.id &&
-          socket.id !== client.id &&
-          !socket.isPlaying
-        ) {
-          response.push({
-            id: socket.id,
-            name: socket.playerData.name,
-            played: socket.playerData.played,
-            won: socket.playerData.won,
-            draw: socket.playerData.draw,
-          })
-        }
+      client.broadcast.emit('excludePlayers', {
+        id: player2Socket.id
       })
 
       io.to(gameId).emit('gameStarted', {
@@ -183,23 +175,23 @@ io.on('connection', client => {
 
     if (game.gameStatus === 'draw' || game.gameStatus === 'won') {
       io.to(data.gameId).emit('selectCellResponse', game)
-          io.sockets.sockets.get(game.player1.id).leave(data.gameId)
-          io.sockets.sockets.get(game.player2.id).leave(data.gameId)
-          // delete game
-        }
+      io.sockets.sockets.get(game.player1.id).leave(data.gameId)
+      io.sockets.sockets.get(game.player2.id).leave(data.gameId)
+      // delete game
     }
+  }
   )
   client.on('forceDisconnect', () => {
     disconnectPlayers(client)
   })
-  
+
   client.on('disconnect', () => {
     disconnectPlayers(client)
   })
 
-  function disconnectPlayers(client){
+  function disconnectPlayers(client) {
     console.log('disconnect : ' + client.id)
-    
+
     const existingSocket = sockets.find(({ id }) => id === client.id)
     const indexSocket = sockets.indexOf(existingSocket)
 
@@ -207,30 +199,27 @@ io.on('connection', client => {
     if (existingSocket) {
       client.broadcast.emit('excludePlayers', {
         id: existingSocket.id,
-        name: existingSocket.playerData.name,
-        played: existingSocket.playerData.played,
-        won: existingSocket.playerData.won,
-        draw: existingSocket.playerData.draw,
       })
+
       if (existingSocket.is_playing) {
-        io.to(existingSocket.gameId).emit('opponentLeft', {})
-        
+        io.to(existingSocket.gameId).emit('opponentDisconnected', {})
+
         const player = players.find(({ id }) => client.id === id)
         const playerIndex = players.indexOf(player)
-        
+
         let game = {}
         let gameIndex = -1
         let playerSocket = ''
-        
+
         if (playerIndex >= 0) {
           game = games.find(({ gameId }) => gameId === existingSocket.gameId)
           gameIndex = games.indexOf(game)
           if (game) {
             playerSocket =
-            game.player1.id === client.id ? game.player2.id : game.player1.id
+              game.player1.id === client.id ? game.player2.id : game.player1.id
             const playerLeave =
-            game.player1.id === client.id ? game.player1 : game.player2
-            
+              game.player1.id === client.id ? game.player1 : game.player2
+
             playerLeave.isPlaying = false
           }
           players.splice(playerIndex, 1)
@@ -238,22 +227,16 @@ io.on('connection', client => {
         if (playerSocket) {
           io.sockets.sockets.get(playerSocket).leave(existingSocket.gameId)
         }
-        
+
         games.splice(gameIndex, 1)
       }
     }
     if (indexSocket >= 0) {
       sockets.splice(indexSocket, 1)
     }
-    
 
-    client.broadcast.emit('opponentDisconnected', {
-      id: client.id,
-    })
-    
-    
   }
-  
+
 })
 
 server.listen(PORT, HOST)

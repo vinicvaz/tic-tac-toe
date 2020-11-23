@@ -17,7 +17,8 @@ function Game({socket}) {
   const [gameId, setGameId] = useState('');
   const [player, setPlayer] = useState({});
   const [winner, setWinner] = useState({});
-  const [gameStatus, setGameStatus] = useState('')
+  const [gameStatus, setGameStatus] = useState('');
+  const [opponentConnected, setOpponentConnected] = useState(true)
 
   const endGame = useMemo(()=>{
     if(gameStatus === 'draw') {
@@ -35,10 +36,11 @@ function Game({socket}) {
   },[gameStatus,winner,player])
 
   useEffect(()=>{
-    if(!game) {
+    if(!game || !socket) {
       history.push('/')
       return
     }
+
 
     const tempPlayer = 
       game.gameData.player1.id === socket.id ? 
@@ -99,11 +101,26 @@ function Game({socket}) {
     socket.emit('forceDisconnect')
     history.push('/')
 
-
   },[socket,history])
+
+  useEffect(() => {
+    if(socket){
+      socket.on('opponentDisconnected', data=>{
+        setOpponentConnected(false);
+      })
+    }
+  }, [socket])
 
   return (
     <main>
+      {!opponentConnected &&
+        <Row>
+          <Col className='col_end'>
+          <h2 className='title' style={{"color": "red"}}>Oponente desconectado</h2>
+          <Button variant='secondary' onClick={handlePlayingAgain}>Jogar Novamente</Button>
+          </Col>
+        </Row>
+      }  
       <h1 className='title' >Jogo da Velha</h1>
       <h3 className='turn'>{myTurn ? 'Sua vez': 'Aguardando outro jogador'}</h3>
       {endGame && 
