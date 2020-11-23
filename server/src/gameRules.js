@@ -20,7 +20,7 @@ export function gameRules(data, players, games) {
   game.playboard.forEach((row, rowIdx) => {
     row.forEach((_, columnIdx) => {
       if (game.playboard[rowIdx][columnIdx] === '') {
-        isDraw = false
+        isDraw = false;
       }
     })
   })
@@ -38,13 +38,6 @@ export function gameRules(data, players, games) {
     if (tempComb === 'XXX' || tempComb === 'OOO') {
       game.gameWinner = game.whoseTurn
       game.gameStatus = 'won'
-      game.winning_combination = [
-        [winCombinations[i][0][0], winCombinations[i][0][1]],
-        [winCombinations[i][1][0], winCombinations[i][1][1]],
-        [winCombinations[i][2][0], winCombinations[i][2][1]],
-      ]
-
-      game.whoseTurn === player1.id ? player1.won++ : player2.won++
     }
   }
 

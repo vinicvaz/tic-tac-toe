@@ -53,9 +53,6 @@ io.on('connection', client => {
         const newPlayer = {
           id: client.id,
           name: data.name,
-          played: 0,
-          won: 0,
-          draw: 0,
         }
 
         players = [...players, newPlayer]
@@ -75,9 +72,6 @@ io.on('connection', client => {
         response.push({
           id: socket.id,
           name: socket.playerData.name,
-          played: socket.playerData.played,
-          won: socket.playerData.won,
-          draw: socket.playerData.draw,
         })
       }
     })
@@ -90,9 +84,6 @@ io.on('connection', client => {
       client.broadcast.emit('newOpponentAdded', {
         id: clientSocket.id,
         name: clientSocket.playerData.name,
-        played: clientSocket.playerData.played,
-        won: clientSocket.playerData.won,
-        draw: clientSocket.playerData.draw,
       })
     }
   })
@@ -115,9 +106,6 @@ io.on('connection', client => {
 
       player1Socket.gameId = gameId
       player2Socket.gameId = gameId
-
-      player1Socket.played += 1
-      player2Socket.played += 1
 
       const gameData = {
         gameId,
