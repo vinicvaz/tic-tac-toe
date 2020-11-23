@@ -5,7 +5,7 @@ import "../../TicTacToe.css"
 
 function SelectOponent({ socket }) {
   const { state: player } = useLocation()
-  const [oponents, setOpponents] = useState([])
+  const [opponents, setOpponents] = useState([])
   const history = useHistory()
 
   useEffect(() => {
@@ -26,21 +26,12 @@ function SelectOponent({ socket }) {
       })
 
       socket.on('newOpponentAdded', (response) => {
-        setOpponents([...oponents, response])
+        setOpponents([...opponents, response])
       })
 
       socket.on('excludePlayers', (response) => {
-        socket.emit('getOponnets')
-        /*
-        const oponent = oponents.find(({ id }) => id === response.id)
-        const oponentIndex = oponents.indexOf(oponent)
-
-        if (oponent) {
-          const aux = oponents;
-          aux.splice(oponentIndex, 1)
-          setOpponents(aux)
-        }
-        */
+        const newOpponents = opponents.filter(oponent => oponent.id !== response.id)
+        setOpponents(newOpponents)
 
       })
 
@@ -50,7 +41,7 @@ function SelectOponent({ socket }) {
 
     }
 
-  }, [socket, setOpponents, oponents, history])
+  }, [socket, setOpponents, opponents, history])
 
   const handleSelectOponent = useCallback((oponent) => {
     socket.emit('selectOpponent', oponent)
@@ -68,7 +59,7 @@ function SelectOponent({ socket }) {
               </tr>
             </thead>
             <tbody>
-              {oponents && oponents.map((oponent, idx) => {
+              {opponents && opponents.map((oponent, idx) => {
                 return (
                   <tr onClick={() => handleSelectOponent(oponent)}>
                     <td>{idx}</td>
