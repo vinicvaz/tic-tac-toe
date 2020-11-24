@@ -21,47 +21,30 @@ io.on('connection', client => {
   client.emit('connected', { id: client.id })
 
   client.on('checkUserDetail', data => {
-    const alreadyExist = sockets.find(socket => {
-      if (socket.id === data.id) {
-        return true
-      }
-      return false
-    })
 
-    let response = alreadyExist
+    let response = ''
 
-    if (!alreadyExist) {
-      const newSocket = {
-        id: client.id,
-        isPlaying: false,
-        gameId: null,
-        playerData: null,
-      }
 
-      sockets = [...sockets, newSocket]
-
-      const alreadyPlayed = players.find(player => {
-        if (player.name === data.name) {
-          return true
-        }
-        return false
-      })
-
-      newSocket.playerData = alreadyPlayed
-
-      if (!alreadyPlayed) {
-        const newPlayer = {
-          id: client.id,
-          name: data.name,
-        }
-
-        players = [...players, newPlayer]
-
-        newSocket.playerData = newPlayer
-      }
-
-      response = newSocket
+    const newSocket = {
+      id: client.id,
+      isPlaying: false,
+      gameId: null,
+      playerData: null,
     }
+
+    sockets = [...sockets, newSocket]
+
+    const newPlayer = {
+      id: client.id,
+      name: data.name,
+    }
+
+    players = [...players, newPlayer]
+
+    newSocket.playerData = newPlayer
+
+    response = newSocket
+
     client.emit('checkUserDetailResponse', response)
   })
 
@@ -78,7 +61,7 @@ io.on('connection', client => {
 
     client.emit('getOpponentsResponse', response)
 
-    const clientSocket = sockets.find(({ id }) => id === client.id)
+    const clientSocket = sockets.find(({ id }) => id === client.id) // testar sem
 
     if (clientSocket) {
       client.broadcast.emit('newOpponentAdded', {
@@ -189,7 +172,7 @@ io.on('connection', client => {
         id: existingSocket.id,
       })
 
-      if (existingSocket.is_playing) {
+      if (existingSocket.isPlaying) {
         io.to(existingSocket.gameId).emit('opponentDisconnected', {})
 
         const player = players.find(({ id }) => client.id === id)
@@ -205,10 +188,6 @@ io.on('connection', client => {
           if (game) {
             playerSocket =
               game.player1.id === client.id ? game.player2.id : game.player1.id
-            const playerLeave =
-              game.player1.id === client.id ? game.player1 : game.player2
-
-            playerLeave.isPlaying = false
           }
           players.splice(playerIndex, 1)
         }
